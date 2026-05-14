@@ -1,0 +1,94 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Ensure frontend project files exist
+        run: |
+          if [ ! -f package.json ]; then
+            echo "package.json not found in pdf-AI-chatbot-fe."
+            echo "Add the frontend application files to this repository, then rerun CI."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Detect package manager
+        id: package-manager
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "install=npm ci" >> "$GITHUB_OUTPUT"
+            echo "validate=npm ls" >> "$GITHUB_OUTPUT"
+            echo "run=npm run" >> "$GITHUB_OUTPUT"
+          elif [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+            echo "install=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "validate=pnpm list --depth -1" >> "$GITHUB_OUTPUT"
+            echo "run=pnpm run" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --immutable" >> "$GITHUB_OUTPUT"
+            echo "validate=yarn list --depth=0" >> "$GITHUB_OUTPUT"
+            echo "run=yarn" >> "$GITHUB_OUTPUT"
+          else
+            echo "No supported lockfile found. Commit package-lock.json, pnpm-lock.yaml, or yarn.lock."
+            exit 1
+          fi
+
+      - name: Enable Corepack for pnpm or Yarn
+        if: steps.package-manager.outputs.manager != 'npm'
+        run: corepack enable
+
+      - name: Install dependencies
+        run: ${{ steps.package-manager.outputs.install }}
+
+      - name: Validate dependency graph
+        run: ${{ steps.package-manager.outputs.validate }}
+
+      - name: Run lint checks
+        run: |
+          if npm run | grep -q " lint"; then
+            ${{ steps.package-manager.outputs.run }} lint
+          else
+            echo "No lint script found, skipping."
+          fi
+
+      - name: Run type checks
+        run: |
+          if npm run | grep -q " typecheck"; then
+            ${{ steps.package-manager.outputs.run }} typecheck
+          else
+            echo "No typecheck script found, skipping."
+          fi
+
+      - name: Run frontend tests
+        run: |
+          if npm run | grep -q " test"; then
+            ${{ steps.package-manager.outputs.run }} test -- --runInBand
+          else
+            echo "No test script found, skipping."
+          fi
+
+      - name: Build frontend
+        run: ${{ steps.package-manager.outputs.run }} build
