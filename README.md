@@ -27,6 +27,24 @@ Production-ready React frontend scaffold for the PDF Chatbot platform.
 3. Install dependencies with `npm install`
 4. Start development with `npm run dev`
 
+## Local Commands
+
+- `make install` to install dependencies
+- `make dev` to run `npm run dev`
+- `make lint` to run ESLint
+- `make test` to run Vitest
+- `make build` to create the production bundle
+
+## Docker
+
+- `make docker-build` to build the development image
+- `make docker-up` to start the frontend with Docker Compose
+- `make docker-down` to stop the Compose stack
+- `make docker-logs` to follow container logs
+- `make docker-prod-build` to build the production image
+
+The local Compose setup reads environment variables from `src/.env` and exposes the Vite dev server on `http://localhost:5173`.
+
 ## Backend Contract
 
 The frontend expects these backend routes:
