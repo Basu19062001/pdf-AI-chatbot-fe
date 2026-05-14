@@ -51,8 +51,13 @@ jobs:
             echo "install=yarn install --immutable" >> "$GITHUB_OUTPUT"
             echo "validate=yarn list --depth=0" >> "$GITHUB_OUTPUT"
             echo "run=yarn" >> "$GITHUB_OUTPUT"
+          elif [ -f package.json ]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "install=npm install" >> "$GITHUB_OUTPUT"
+            echo "validate=npm ls" >> "$GITHUB_OUTPUT"
+            echo "run=npm run" >> "$GITHUB_OUTPUT"
           else
-            echo "No supported lockfile found. Commit package-lock.json, pnpm-lock.yaml, or yarn.lock."
+            echo "No supported frontend project files were found."
             exit 1
           fi
 
@@ -85,7 +90,7 @@ jobs:
       - name: Run frontend tests
         run: |
           if npm run | grep -q " test"; then
-            ${{ steps.package-manager.outputs.run }} test -- --runInBand
+            ${{ steps.package-manager.outputs.run }} test
           else
             echo "No test script found, skipping."
           fi
