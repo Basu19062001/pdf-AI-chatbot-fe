@@ -46,10 +46,19 @@ export function LoginPage() {
 
   return (
     <div className="auth-card">
+      <div className="auth-card__topbar">
+        <span className="auth-card__badge">Member access</span>
+        <span className="auth-card__microcopy">PDF workspace login</span>
+      </div>
       <div className="auth-card__header">
         <p className="eyebrow">Login</p>
-        <h2>Access your workspace</h2>
-        <p>Use your account to continue to the secured document console.</p>
+        <h2>Open your document workspace</h2>
+        <p>Pick up where you left off with your PDFs, extracted notes, and secured sessions.</p>
+      </div>
+
+      <div className="auth-card__meta">
+        <span className="auth-chip">PDF sessions</span>
+        <span className="auth-chip">Token protected</span>
       </div>
 
       {showRegisteredMessage ? (
@@ -67,7 +76,7 @@ export function LoginPage() {
           type="email"
           register={register}
           error={errors.email}
-          placeholder="ava@example.com"
+          placeholder="Enter your email address"
           autoComplete="email"
         />
         <TextField
@@ -76,7 +85,7 @@ export function LoginPage() {
           type="password"
           register={register}
           error={errors.password}
-          placeholder="Enter your password"
+          placeholder="Enter your account password"
           autoComplete="current-password"
         />
 
@@ -85,10 +94,14 @@ export function LoginPage() {
         </button>
       </form>
 
-      <p className="auth-card__footer">
-        New here? <Link to="/signup">Create an account</Link>
+      <p className="auth-card__hint">
+        Secure access is tied to your current device so you can review documents with confidence.
       </p>
+
+      <div className="auth-card__footer auth-card__footer--row">
+        <p>New here? <Link to="/signup">Create an account</Link></p>
+        <span className="auth-card__footer-meta">Secure workspace access</span>
+      </div>
     </div>
   );
 }
-
