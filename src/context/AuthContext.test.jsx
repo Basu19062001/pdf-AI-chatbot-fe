@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { StrictMode, useEffect, useRef } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 
 import { persistAuthSession, clearStoredAuthSession } from '../utils/authStorage';
@@ -44,6 +44,20 @@ function AuthProbe() {
 
   if (isAuthenticated) {
     return <p>ready:{user?.email}</p>;
+  }
+
+  return <p>signed-out</p>;
+}
+
+function BootstrapProbe() {
+  const { isBootstrapping, isAuthenticated, user } = useAuth();
+
+  if (isBootstrapping) {
+    return <p>bootstrapping</p>;
+  }
+
+  if (isAuthenticated) {
+    return <p>restored:{user?.email}</p>;
   }
 
   return <p>signed-out</p>;
@@ -115,5 +129,49 @@ describe('AuthProvider', () => {
     });
 
     expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes bootstrap in strict mode after restoring the current user', async () => {
+    persistAuthSession({
+      accessToken: 'valid-access-token',
+      refreshToken: 'refresh-token-1',
+      expiresAt: '2999-01-01T00:00:00Z',
+      refreshTokenExpiresAt: '2999-01-02T00:00:00Z',
+      user: null,
+      session: {
+        id: '00000000-0000-0000-0000-000000000010',
+      },
+    });
+
+    getMeMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              id: '00000000-0000-0000-0000-000000000001',
+              full_name: 'Basu',
+              email: 'basu@example.com',
+              role: 'user',
+              is_active: true,
+              created_at: '2026-05-01T00:00:00Z',
+              updated_at: '2026-05-01T00:00:00Z',
+            });
+          }, 25);
+        }),
+    );
+
+    render(
+      <StrictMode>
+        <AuthProvider>
+          <BootstrapProbe />
+        </AuthProvider>
+      </StrictMode>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('restored:basu@example.com')).toBeInTheDocument();
+    });
+
+    expect(getMeMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -55,7 +55,7 @@ function normalizeTokenPayload(response) {
 
 export function AuthProvider({ children }) {
   const tokenRef = useRef(null);
-  const hasBootstrappedRef = useRef(false);
+  const bootstrapPromiseRef = useRef(null);
   const [authState, setAuthState] = useState({
     user: null,
     session: null,
@@ -159,33 +159,25 @@ export function AuthProvider({ children }) {
   }, [clearAuthState, refreshSession]);
 
   useEffect(() => {
-    if (hasBootstrappedRef.current) {
-      authDebugLog('Bootstrap skipped because it already ran once.');
-      return undefined;
-    }
+    let isActive = true;
 
-    hasBootstrappedRef.current = true;
-    let isMounted = true;
+    if (!bootstrapPromiseRef.current) {
+      authDebugLog('Starting bootstrap auth flow.');
+      bootstrapPromiseRef.current = (async () => {
+        const persisted = getStoredAuthSession();
+        authDebugLog('Bootstrapping auth state from storage.', {
+          hasPersistedSession: Boolean(persisted),
+          hasAccessToken: Boolean(persisted?.accessToken),
+          hasRefreshToken: Boolean(persisted?.refreshToken),
+          accessTokenExpiresAt: persisted?.expiresAt,
+          refreshTokenExpiresAt: persisted?.refreshTokenExpiresAt,
+        });
 
-    async function bootstrapAuth() {
-      const persisted = getStoredAuthSession();
-      authDebugLog('Bootstrapping auth state from storage.', {
-        hasPersistedSession: Boolean(persisted),
-        hasAccessToken: Boolean(persisted?.accessToken),
-        hasRefreshToken: Boolean(persisted?.refreshToken),
-        accessTokenExpiresAt: persisted?.expiresAt,
-        refreshTokenExpiresAt: persisted?.refreshTokenExpiresAt,
-      });
-
-      if (!persisted) {
-        if (isMounted) {
+        if (!persisted) {
           authDebugLog('No persisted session found; bootstrap complete.');
-          setIsBootstrapping(false);
+          return;
         }
-        return;
-      }
 
-      try {
         if (
           persisted.accessToken &&
           !isTimestampExpired(persisted.expiresAt, 30)
@@ -197,16 +189,17 @@ export function AuthProvider({ children }) {
           tokenRef.current = persisted.accessToken;
           setAuthState(persisted);
           const user = await authApi.getMe();
-          if (isMounted) {
-            const nextState = { ...persisted, user };
-            authDebugLog('User profile restored from /auth/me.', {
-              userId: user?.id,
-              email: user?.email,
-            });
-            persistAuthSession(nextState);
-            setAuthState(nextState);
-          }
-        } else if (
+          const nextState = { ...persisted, user };
+          authDebugLog('User profile restored from /auth/me.', {
+            userId: user?.id,
+            email: user?.email,
+          });
+          persistAuthSession(nextState);
+          setAuthState(nextState);
+          return;
+        }
+
+        if (
           persisted.refreshToken &&
           !isTimestampExpired(persisted.refreshTokenExpiresAt, 30)
         ) {
@@ -215,29 +208,37 @@ export function AuthProvider({ children }) {
             refreshTokenExpiresAt: persisted.refreshTokenExpiresAt,
           });
           await refreshSession();
-        } else {
-          authDebugLog('Persisted session is fully expired; clearing auth state.');
-          clearAuthState();
+          return;
         }
-      } catch (error) {
-        authDebugLog('Bootstrap failed; clearing auth state.', {
-          message: error.message,
-          status: error.response?.status,
-        });
+
+        authDebugLog('Persisted session is fully expired; clearing auth state.');
         clearAuthState();
-        console.warn('Failed to restore auth session:', error);
-      } finally {
-        if (isMounted) {
-          authDebugLog('Bootstrap flow finished.');
-          setIsBootstrapping(false);
-        }
-      }
+      })()
+        .catch((error) => {
+          authDebugLog('Bootstrap failed; clearing auth state.', {
+            message: error.message,
+            status: error.response?.status,
+          });
+          clearAuthState();
+          console.warn('Failed to restore auth session:', error);
+        })
+        .finally(() => {
+          authDebugLog('Bootstrap promise settled.');
+          bootstrapPromiseRef.current = null;
+        });
+    } else {
+      authDebugLog('Reusing in-flight bootstrap auth flow.');
     }
 
-    bootstrapAuth();
+    bootstrapPromiseRef.current.finally(() => {
+      if (isActive) {
+        authDebugLog('Bootstrap flow finished.');
+        setIsBootstrapping(false);
+      }
+    });
 
     return () => {
-      isMounted = false;
+      isActive = false;
     };
   }, [clearAuthState, refreshSession]);
 

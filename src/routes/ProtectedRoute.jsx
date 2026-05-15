@@ -8,7 +8,7 @@ export function ProtectedRoute() {
   const location = useLocation();
 
   if (isBootstrapping) {
-    return <FullScreenLoader label="Restoring your secure session..." />;
+    return <FullScreenLoader label="Restoring your secure session..." variant="app" />;
   }
 
   if (!isAuthenticated) {
@@ -17,4 +17,3 @@ export function ProtectedRoute() {
 
   return <Outlet />;
 }
-
