@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { ContentSkeleton } from '../components/common/ContentSkeleton';
+import { EmptyState } from '../components/common/EmptyState';
 import { InlineMessage } from '../components/common/InlineMessage';
 import { useAuth } from '../hooks/useAuth';
 
@@ -53,9 +55,13 @@ export function SessionsPage() {
       {error ? <InlineMessage tone="error">{error}</InlineMessage> : null}
 
       {isLoading ? (
-        <article className="panel">
-          <p>Loading active sessions...</p>
-        </article>
+        <ContentSkeleton title="Loading active sessions..." />
+      ) : items.length === 0 ? (
+        <EmptyState
+          eyebrow="No active sessions"
+          title="No device sessions are available yet."
+          description="Once authenticated sessions are issued by the backend, device and refresh lifecycle details will appear here."
+        />
       ) : (
         <div className="session-grid">
           {items.map((item) => {
@@ -98,4 +104,3 @@ export function SessionsPage() {
     </section>
   );
 }
-
