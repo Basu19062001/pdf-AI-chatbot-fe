@@ -4,7 +4,20 @@ export function DashboardPage() {
   const { user, session } = useAuth();
 
   return (
-    <section className="dashboard-grid">
+    <section className="panel-stack">
+      <article className="page-section-header panel">
+        <div>
+          <p className="eyebrow">App shell</p>
+          <h2>Phase 2 foundation is now active.</h2>
+          <p>
+            The workspace shell, guarded routes, user menu, and shared app surfaces are
+            in place so document and chat features can land on stable UI foundations.
+          </p>
+        </div>
+        <span className="status-chip">Roadmap phase 2</span>
+      </article>
+
+      <div className="dashboard-grid">
       <article className="panel">
         <p className="eyebrow">Authenticated user</p>
         <h2>{user?.full_name}</h2>
@@ -46,14 +59,14 @@ export function DashboardPage() {
       <article className="panel panel--wide">
         <p className="eyebrow">What is already production-ready</p>
         <ul className="feature-list">
-          <li>Router-level route protection for private pages.</li>
-          <li>Backend-aligned signup and login validation.</li>
-          <li>Bearer token attachment with 401-triggered refresh rotation.</li>
-          <li>Session persistence and rehydration after browser reloads.</li>
-          <li>Dedicated session management view wired to `/auth/sessions`.</li>
+          <li>Protected shell with sidebar navigation and top bar.</li>
+          <li>User profile menu with route actions and logout.</li>
+          <li>Shared skeleton loading while session bootstrap runs.</li>
+          <li>Global toast system ready for cross-app feedback.</li>
+          <li>Placeholder product sections for documents and chats.</li>
         </ul>
       </article>
+      </div>
     </section>
   );
 }
-
