@@ -1,5 +1,7 @@
 import { apiClient, publicClient } from './client';
 
+let listSessionsPromise = null;
+
 export const authApi = {
   async signup(payload) {
     const response = await publicClient.post('/auth/signup', payload);
@@ -22,8 +24,20 @@ export const authApi = {
   },
 
   async listSessions() {
-    const response = await apiClient.get('/auth/sessions');
-    return response.data.items;
+    if (!listSessionsPromise) {
+      console.warn('[auth-debug][auth-api] Starting /auth/sessions request.');
+      listSessionsPromise = apiClient
+        .get('/auth/sessions')
+        .then((response) => response.data.items)
+        .finally(() => {
+          console.warn('[auth-debug][auth-api] /auth/sessions request settled.');
+          listSessionsPromise = null;
+        });
+    } else {
+      console.warn('[auth-debug][auth-api] Reusing in-flight /auth/sessions request.');
+    }
+
+    return listSessionsPromise;
   },
 
   async logout() {
@@ -31,4 +45,3 @@ export const authApi = {
     return response.data;
   },
 };
-
