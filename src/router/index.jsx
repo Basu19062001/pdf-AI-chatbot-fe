@@ -3,6 +3,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { ChatsPage } from '../pages/ChatsPage';
+import { DocumentDetailPage } from '../pages/DocumentDetailPage';
 import { ProtectedRoute } from '../routes/ProtectedRoute';
 import { PublicOnlyRoute } from '../routes/PublicOnlyRoute';
 import { DashboardPage } from '../pages/DashboardPage';
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
           {
             path: 'documents',
             element: <DocumentsPage />,
+          },
+          {
+            path: 'documents/:documentId',
+            element: <DocumentDetailPage />,
           },
           {
             path: 'chats',

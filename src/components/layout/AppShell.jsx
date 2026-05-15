@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, matchPath, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
@@ -27,33 +27,44 @@ const navigationItems = [
   },
 ];
 
-const routeMeta = {
-  '/app/dashboard': {
+const routeMeta = [
+  {
+    pattern: '/app/dashboard',
     eyebrow: 'Workspace overview',
     title: 'Your authenticated workspace foundation.',
     description: 'Protected shell, session restore, and navigation are ready for product feature work.',
   },
-  '/app/documents': {
+  {
+    pattern: '/app/documents',
     eyebrow: 'Documents',
-    title: 'Document operations will live here.',
-    description: 'Upload, processing status, and document detail flows will plug into this shell next.',
+    title: 'Manage your PDF library and readiness states.',
+    description: 'Upload files, monitor processing outcomes, and move only ready documents into chat workflows.',
   },
-  '/app/chats': {
+  {
+    pattern: '/app/documents/:documentId',
+    eyebrow: 'Document detail',
+    title: 'Inspect one document before taking the next action.',
+    description: 'Review metadata, processing health, and readiness before starting a chat session.',
+  },
+  {
+    pattern: '/app/chats',
     eyebrow: 'Chats',
     title: 'Conversation workflows are queued up.',
     description: 'Chat sessions and source-aware answers will be layered into this area after documents.',
   },
-  '/app/sessions': {
+  {
+    pattern: '/app/sessions',
     eyebrow: 'Sessions',
     title: 'Track the authenticated devices tied to your account.',
     description: 'Review active sessions, validate refresh behavior, and monitor the current device context.',
   },
-  '/app/profile': {
+  {
+    pattern: '/app/profile',
     eyebrow: 'Profile',
     title: 'Account context and session posture.',
     description: 'This area shows the current authenticated user and the active device session.',
   },
-};
+];
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -63,7 +74,9 @@ export function AppShell() {
   const { pushToast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const currentMeta = routeMeta[location.pathname] ?? routeMeta['/app/dashboard'];
+  const currentMeta =
+    routeMeta.find((entry) => matchPath({ path: entry.pattern, end: true }, location.pathname)) ??
+    routeMeta[0];
   const firstName = user?.full_name?.split(' ')[0] || 'there';
   const initials = useMemo(() => {
     const parts = user?.full_name?.trim().split(/\s+/).filter(Boolean) ?? [];
@@ -216,14 +229,14 @@ export function AppShell() {
               <div>
                 <h2>Hi, {firstName}.</h2>
                 <p>
-                  This reusable shell is now ready for document, chat, profile, and
-                  session workflows as the product grows through the next roadmap phases.
+                  Your authenticated workspace now keeps navigation, uploads, profile context,
+                  and status-driven product flows in one production-style shell.
                 </p>
               </div>
               <div className="app-shell__content-intro-pills">
                 <span className="pill">Protected routes</span>
                 <span className="pill">Shared shell</span>
-                <span className="pill pill--highlight">Production-minded UX</span>
+                <span className="pill pill--highlight">Status-aware workflows</span>
               </div>
             </div>
           </div>
