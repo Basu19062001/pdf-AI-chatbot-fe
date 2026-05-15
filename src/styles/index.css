@@ -865,6 +865,28 @@ input {
   background: rgba(169, 79, 87, 0.1);
 }
 
+.skeleton-surface {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 28%,
+    rgba(255, 255, 255, 0.58) 54%,
+    rgba(255, 255, 255, 0.08) 76%,
+    transparent 100%
+  );
+  transform: translateY(135%);
+  animation: skeletonLift 3.9s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .skeleton-line::after,
 .skeleton-pill::after {
   content: '';
@@ -879,7 +901,7 @@ input {
     transparent 100%
   );
   transform: translateX(-130%);
-  animation: sheetSheen 3.4s ease-in-out infinite;
+  animation: skeletonSweepX 2.8s ease-in-out infinite;
 }
 
 .skeleton-line {
@@ -1153,6 +1175,42 @@ input {
     opacity: 0.95;
   }
   60% {
+    opacity: 0;
+  }
+}
+
+@keyframes skeletonSweepX {
+  0%,
+  100% {
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+  16% {
+    opacity: 0;
+  }
+  48% {
+    transform: translateX(130%);
+    opacity: 0.95;
+  }
+  64% {
+    opacity: 0;
+  }
+}
+
+@keyframes skeletonLift {
+  0%,
+  100% {
+    transform: translateY(135%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0;
+  }
+  52% {
+    transform: translateY(-135%);
+    opacity: 0.9;
+  }
+  68% {
     opacity: 0;
   }
 }

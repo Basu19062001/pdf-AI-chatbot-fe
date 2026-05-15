@@ -34,8 +34,8 @@ export function FullScreenLoader({ label, variant = 'app' }) {
           </div>
 
           <div className="fullscreen-loader__preview" aria-hidden="true">
-            <div className="fullscreen-loader__preview-sheet fullscreen-loader__preview-sheet--back" />
-            <div className="fullscreen-loader__preview-sheet fullscreen-loader__preview-sheet--front">
+            <div className="fullscreen-loader__preview-sheet fullscreen-loader__preview-sheet--back skeleton-surface" />
+            <div className="fullscreen-loader__preview-sheet fullscreen-loader__preview-sheet--front skeleton-surface">
               <span className="skeleton-line skeleton-line--medium" />
               <span className="skeleton-line skeleton-line--long" />
               <span className="skeleton-line skeleton-line--long" />
@@ -45,19 +45,19 @@ export function FullScreenLoader({ label, variant = 'app' }) {
         </div>
 
         <div className="fullscreen-loader__grid" aria-hidden="true">
-          <article className="skeleton-card">
+          <article className="skeleton-card skeleton-surface">
             <span className="skeleton-line skeleton-line--tiny" />
             <span className="skeleton-line skeleton-line--medium" />
             <span className="skeleton-line skeleton-line--long" />
             <span className="skeleton-line skeleton-line--short" />
           </article>
-          <article className="skeleton-card">
+          <article className="skeleton-card skeleton-surface">
             <span className="skeleton-line skeleton-line--tiny" />
             <span className="skeleton-line skeleton-line--medium" />
             <span className="skeleton-line skeleton-line--long" />
             <span className="skeleton-line skeleton-line--medium" />
           </article>
-          <article className="skeleton-card skeleton-card--wide">
+          <article className="skeleton-card skeleton-card--wide skeleton-surface">
             <span className="skeleton-line skeleton-line--tiny" />
             <span className="skeleton-line skeleton-line--long" />
             <div className="fullscreen-loader__metric-row">
