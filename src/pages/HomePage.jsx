@@ -11,9 +11,8 @@ export function HomePage() {
         <p className="eyebrow">Production-ready React frontend</p>
         <h1>Secure document intelligence for teams that need trustworthy answers.</h1>
         <p className="hero-card__body">
-          This frontend is designed to connect to your FastAPI backend with bearer auth,
-          refresh-token rotation, route protection, and a clean integration layer you can
-          extend into uploads, chat sessions, and workspace features.
+          Upload PDFs, explore their content with confidence, and keep your document
+          conversations organized inside a secure workspace built for focused review.
         </p>
         <div className="hero-card__actions">
           <Link className="button" to={isAuthenticated ? '/app' : '/login'}>
@@ -27,4 +26,3 @@ export function HomePage() {
     </main>
   );
 }
-

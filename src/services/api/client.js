@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
       isAuthRequest ||
       !refreshSessionHandler
     ) {
-      return Promise.reject(error);
+      throw error;
     }
 
     originalRequest._retry = true;
@@ -67,7 +67,7 @@ apiClient.interceptors.response.use(
 
       if (!nextAccessToken) {
         unauthorizedHandler?.();
-        return Promise.reject(error);
+        throw error;
       }
 
       originalRequest.headers = originalRequest.headers || {};
@@ -76,7 +76,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       refreshPromise = null;
       unauthorizedHandler?.();
-      return Promise.reject(refreshError);
+      throw refreshError;
     }
   },
 );

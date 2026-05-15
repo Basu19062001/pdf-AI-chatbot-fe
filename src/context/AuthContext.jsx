@@ -12,6 +12,8 @@ import { configureApiClient } from '../services/api/client';
 import { getApiErrorMessage } from '../utils/http';
 import { getDeviceMetadata } from '../utils/device';
 
+let refreshSessionPromise = null;
+
 function toAuthState(payload) {
   return {
     user: payload.user,
@@ -36,7 +38,7 @@ function normalizeTokenPayload(response) {
 
 export function AuthProvider({ children }) {
   const tokenRef = useRef(null);
-  const hasBootstrappedRef = useRef(false);
+  const bootstrapPromiseRef = useRef(null);
   const [authState, setAuthState] = useState({
     user: null,
     session: null,
@@ -69,21 +71,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   const refreshSession = useCallback(async () => {
-    const persisted = getStoredAuthSession();
-    const refreshToken = persisted?.refreshToken ?? authState.refreshToken;
+    if (!refreshSessionPromise) {
+      // Refresh tokens are rotated on every successful use, so concurrent refresh
+      // calls must share one network request or the backend will treat the later
+      // call as a stale-token replay and revoke the session.
+      refreshSessionPromise = (async () => {
+        const persisted = getStoredAuthSession();
+        const refreshToken = persisted?.refreshToken ?? authState.refreshToken;
+        const refreshTokenExpiresAt =
+          persisted?.refreshTokenExpiresAt ?? authState.refreshTokenExpiresAt;
 
-    if (!refreshToken) {
+        if (!refreshToken || isTimestampExpired(refreshTokenExpiresAt, 30)) {
+          return null;
+        }
+
+        const response = await authApi.refresh({ refresh_token: refreshToken });
+        return normalizeTokenPayload(response);
+      })().finally(() => {
+        refreshSessionPromise = null;
+      });
+    }
+
+    const normalized = await refreshSessionPromise;
+
+    if (!normalized) {
       clearAuthState();
       return null;
     }
 
-    if (isTimestampExpired(persisted?.refreshTokenExpiresAt ?? authState.refreshTokenExpiresAt, 30)) {
-      clearAuthState();
-      return null;
-    }
-
-    const response = await authApi.refresh({ refresh_token: refreshToken });
-    const normalized = normalizeTokenPayload(response);
     applyTokenPayload(normalized);
     return normalized.accessToken;
   }, [applyTokenPayload, authState.refreshToken, authState.refreshTokenExpiresAt, clearAuthState]);
@@ -97,24 +112,16 @@ export function AuthProvider({ children }) {
   }, [clearAuthState, refreshSession]);
 
   useEffect(() => {
-    if (hasBootstrappedRef.current) {
-      return undefined;
-    }
+    let isActive = true;
 
-    hasBootstrappedRef.current = true;
-    let isMounted = true;
+    if (!bootstrapPromiseRef.current) {
+      bootstrapPromiseRef.current = (async () => {
+        const persisted = getStoredAuthSession();
 
-    async function bootstrapAuth() {
-      const persisted = getStoredAuthSession();
-
-      if (!persisted) {
-        if (isMounted) {
-          setIsBootstrapping(false);
+        if (!persisted) {
+          return;
         }
-        return;
-      }
 
-      try {
         if (
           persisted.accessToken &&
           !isTimestampExpired(persisted.expiresAt, 30)
@@ -122,33 +129,38 @@ export function AuthProvider({ children }) {
           tokenRef.current = persisted.accessToken;
           setAuthState(persisted);
           const user = await authApi.getMe();
-          if (isMounted) {
-            const nextState = { ...persisted, user };
-            persistAuthSession(nextState);
-            setAuthState(nextState);
-          }
-        } else if (
+          const nextState = { ...persisted, user };
+          persistAuthSession(nextState);
+          setAuthState(nextState);
+          return;
+        }
+
+        if (
           persisted.refreshToken &&
           !isTimestampExpired(persisted.refreshTokenExpiresAt, 30)
         ) {
           await refreshSession();
-        } else {
-          clearAuthState();
+          return;
         }
-      } catch (error) {
+
         clearAuthState();
-        console.warn('Failed to restore auth session:', error);
-      } finally {
-        if (isMounted) {
-          setIsBootstrapping(false);
-        }
-      }
+      })()
+        .catch(() => {
+          clearAuthState();
+        })
+        .finally(() => {
+          bootstrapPromiseRef.current = null;
+        });
     }
 
-    bootstrapAuth();
+    bootstrapPromiseRef.current.finally(() => {
+      if (isActive) {
+        setIsBootstrapping(false);
+      }
+    });
 
     return () => {
-      isMounted = false;
+      isActive = false;
     };
   }, [clearAuthState, refreshSession]);
 

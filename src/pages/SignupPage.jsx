@@ -8,6 +8,23 @@ import { TextField } from '../components/forms/TextField';
 import { useAuth } from '../hooks/useAuth';
 import { signupSchema } from '../utils/validation';
 
+function getPasswordChecks(password) {
+  return [
+    {
+      label: 'At least 12 characters',
+      passed: password.length >= 12,
+    },
+    {
+      label: 'Uppercase and lowercase letters',
+      passed: /[A-Z]/.test(password) && /[a-z]/.test(password),
+    },
+    {
+      label: 'One number and one special character',
+      passed: /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password),
+    },
+  ];
+}
+
 export function SignupPage() {
   const navigate = useNavigate();
   const { signup, getApiErrorMessage } = useAuth();
@@ -17,6 +34,7 @@ export function SignupPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(signupSchema),
@@ -26,6 +44,9 @@ export function SignupPage() {
       password: '',
     },
   });
+  const passwordValue = watch('password', '');
+  const passwordChecks = getPasswordChecks(passwordValue);
+  const hasStartedTypingPassword = passwordValue.length > 0;
 
   async function onSubmit(values) {
     setSubmitError('');
@@ -43,13 +64,21 @@ export function SignupPage() {
 
   return (
     <div className="auth-card">
+      <div className="auth-card__topbar">
+        <span className="auth-card__badge">New account</span>
+        <span className="auth-card__microcopy">Secure onboarding</span>
+      </div>
       <div className="auth-card__header">
         <p className="eyebrow">Signup</p>
-        <h2>Create a secure account</h2>
+        <h2>Create your PDF workspace account</h2>
         <p>
-          Passwords must be at least 12 characters and include upper, lower, numeric,
-          and special characters to match backend validation.
+          Set up a secure account before you start uploading, organizing, and discussing documents.
         </p>
+      </div>
+
+      <div className="auth-card__meta">
+        <span className="auth-chip">12+ char password</span>
+        <span className="auth-chip">Session tracking</span>
       </div>
 
       {submitError ? <InlineMessage tone="error">{submitError}</InlineMessage> : null}
@@ -60,7 +89,7 @@ export function SignupPage() {
           name="full_name"
           register={register}
           error={errors.full_name}
-          placeholder="Ava Sharma"
+          placeholder="Enter your full name"
           autoComplete="name"
         />
         <TextField
@@ -69,7 +98,7 @@ export function SignupPage() {
           type="email"
           register={register}
           error={errors.email}
-          placeholder="ava@example.com"
+          placeholder="Enter your email address"
           autoComplete="email"
         />
         <TextField
@@ -78,7 +107,7 @@ export function SignupPage() {
           type="password"
           register={register}
           error={errors.password}
-          placeholder="Create a strong password"
+          placeholder="Create a secure password"
           autoComplete="new-password"
         />
 
@@ -87,10 +116,33 @@ export function SignupPage() {
         </button>
       </form>
 
-      <p className="auth-card__footer">
-        Already have an account? <Link to="/login">Back to login</Link>
-      </p>
+      <div className="auth-card__hint auth-card__hint--list">
+        <span>Password checklist</span>
+        <ul className="auth-checklist">
+          {passwordChecks.map((item) => (
+            <li
+              key={item.label}
+              className={`auth-checklist__item ${
+                item.passed
+                  ? 'auth-checklist__item--passed'
+                  : hasStartedTypingPassword
+                    ? 'auth-checklist__item--pending'
+                    : 'auth-checklist__item--idle'
+              }`}
+            >
+              <span className="auth-checklist__icon" aria-hidden="true">
+                {item.passed ? '✓' : '•'}
+              </span>
+              <span>{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="auth-card__footer auth-card__footer--row">
+        <p>Have an account? <Link to="/login">Sign in</Link></p>
+        <span className="auth-card__footer-meta">Private account protection</span>
+      </div>
     </div>
   );
 }
-

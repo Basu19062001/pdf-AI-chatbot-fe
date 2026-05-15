@@ -1,5 +1,7 @@
 import { apiClient, publicClient } from './client';
 
+let listSessionsPromise = null;
+
 export const authApi = {
   async signup(payload) {
     const response = await publicClient.post('/auth/signup', payload);
@@ -22,8 +24,16 @@ export const authApi = {
   },
 
   async listSessions() {
-    const response = await apiClient.get('/auth/sessions');
-    return response.data.items;
+    if (!listSessionsPromise) {
+      listSessionsPromise = apiClient
+        .get('/auth/sessions')
+        .then((response) => response.data.items)
+        .finally(() => {
+          listSessionsPromise = null;
+        });
+    }
+
+    return listSessionsPromise;
   },
 
   async logout() {
@@ -31,4 +41,3 @@ export const authApi = {
     return response.data;
   },
 };
-

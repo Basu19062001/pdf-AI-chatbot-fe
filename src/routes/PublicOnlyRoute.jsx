@@ -7,7 +7,7 @@ export function PublicOnlyRoute() {
   const { isAuthenticated, isBootstrapping } = useAuth();
 
   if (isBootstrapping) {
-    return <FullScreenLoader label="Preparing your workspace..." />;
+    return <FullScreenLoader label="Preparing your workspace..." variant="auth" />;
   }
 
   if (isAuthenticated) {
@@ -16,4 +16,3 @@ export function PublicOnlyRoute() {
 
   return <Outlet />;
 }
-
