@@ -545,7 +545,7 @@ export function DocumentsPage() {
                           <Link className="button button--ghost" to={`/app/documents/${item.id}`}>
                             Open details
                           </Link>
-                          <Link className="button" to="/app/chats">
+                          <Link className="button" to={`/app/chats?documentId=${item.id}`}>
                             Start chat
                           </Link>
                         </div>

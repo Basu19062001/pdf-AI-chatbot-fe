@@ -1377,6 +1377,35 @@ select {
   line-height: 1.55;
 }
 
+.chat-message-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.chat-message-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.05rem;
+  border-radius: 20px;
+  border: 1px solid rgba(169, 79, 87, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.chat-message-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.chat-message-card p {
+  margin: 0;
+  line-height: 1.6;
+}
+
 .session-grid {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
