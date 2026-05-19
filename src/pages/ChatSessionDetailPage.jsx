@@ -11,9 +11,12 @@ import { documentsApi } from '../services/api/documents';
 import { formatDocumentDate, getDocumentDisplayTitle, isDocumentReady } from '../utils/documents';
 import {
   countAssistantMessages,
+  formatChatSourcePageRange,
+  formatChatSourceSimilarity,
   formatChatStatus,
   getChatSessionTitle,
   getChatStatusTone,
+  getLatestAssistantMessage,
   getMessageRoleLabel,
   getMessageRoleTone,
 } from '../utils/chats';
@@ -25,10 +28,21 @@ const QUICK_PROMPTS = [
   'Explain the main sections in plain language.',
 ];
 
-function delay(ms) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
+function buildPendingId(prefix) {
+  const suffix = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `${prefix}-${suffix}`;
+}
+
+function replaceMessage(messages, matcher, nextMessage) {
+  return messages.map((message) => (matcher(message) ? nextMessage : message));
+}
+
+function removeMessage(messages, messageId) {
+  return messages.filter((message) => message.id !== messageId);
+}
+
+function isAbortError(error) {
+  return error?.name === 'AbortError';
 }
 
 export function ChatSessionDetailPage() {
@@ -37,6 +51,7 @@ export function ChatSessionDetailPage() {
   const { getApiErrorMessage } = useAuth();
   const { pushToast } = useToast();
   const messageListRef = useRef(null);
+  const activeStreamControllerRef = useRef(null);
   const [sessionItem, setSessionItem] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [documentItem, setDocumentItem] = useState(null);
@@ -47,22 +62,39 @@ export function ChatSessionDetailPage() {
   const [isSending, setIsSending] = useState(false);
   const [assistantStatus, setAssistantStatus] = useState('idle');
 
+  const cancelActiveStream = useCallback(() => {
+    activeStreamControllerRef.current?.abort();
+    activeStreamControllerRef.current = null;
+  }, []);
+
+  const refreshSessionsList = useCallback(async () => {
+    const nextSessions = await chatsApi.listSessions({ force: true }).catch(() => null);
+    if (nextSessions) {
+      setSessions(nextSessions);
+    }
+  }, []);
+
+  const refreshSessionItem = useCallback(async () => {
+    const nextSession = await chatsApi.getSession(chatId);
+    setSessionItem(nextSession);
+    return nextSession;
+  }, [chatId]);
+
   const loadSession = useCallback(async () => {
+    cancelActiveStream();
     setIsLoading(true);
     setError('');
 
     try {
       const [nextSession, nextSessions] = await Promise.all([
         chatsApi.getSession(chatId),
-        chatsApi.listSessions(),
+        chatsApi.listSessions({ force: true }),
       ]);
       setSessionItem(nextSession);
       setSessions(nextSessions);
 
       if (nextSession.document_id) {
-        const nextDocument = await documentsApi.getDocument(nextSession.document_id).catch(
-          () => null,
-        );
+        const nextDocument = await documentsApi.getDocument(nextSession.document_id).catch(() => null);
         setDocumentItem(nextDocument);
       } else {
         setDocumentItem(null);
@@ -71,12 +103,20 @@ export function ChatSessionDetailPage() {
       setError(getApiErrorMessage(loadError, 'Unable to load the requested chat session.'));
     } finally {
       setIsLoading(false);
+      setAssistantStatus('idle');
+      setIsSending(false);
     }
-  }, [chatId, getApiErrorMessage]);
+  }, [cancelActiveStream, chatId, getApiErrorMessage]);
 
   useEffect(() => {
     loadSession();
   }, [loadSession]);
+
+  useEffect(() => {
+    return () => {
+      cancelActiveStream();
+    };
+  }, [cancelActiveStream]);
 
   useEffect(() => {
     if (!messageListRef.current) {
@@ -85,35 +125,6 @@ export function ChatSessionDetailPage() {
 
     messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
   }, [assistantStatus, sessionItem?.messages]);
-
-  const refreshSessionsList = useCallback(async () => {
-    const nextSessions = await chatsApi.listSessions().catch(() => null);
-    if (nextSessions) {
-      setSessions(nextSessions);
-    }
-  }, []);
-
-  const waitForAssistantReply = useCallback(
-    async (existingAssistantCount) => {
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        await delay(850);
-
-        const nextSession = await chatsApi.getSession(chatId);
-        setSessionItem(nextSession);
-        const nextAssistantCount = countAssistantMessages(nextSession);
-
-        if (nextAssistantCount > existingAssistantCount) {
-          setAssistantStatus('received');
-          await refreshSessionsList();
-          return;
-        }
-      }
-
-      setAssistantStatus('unavailable');
-      await refreshSessionsList();
-    },
-    [chatId, refreshSessionsList],
-  );
 
   async function handleSendMessage(event) {
     event.preventDefault();
@@ -129,27 +140,212 @@ export function ChatSessionDetailPage() {
       return;
     }
 
+    cancelActiveStream();
     setSendError('');
     setIsSending(true);
-    setAssistantStatus('waiting');
+    setAssistantStatus('streaming');
+
+    const createdAt = new Date().toISOString();
+    const pendingUserId = buildPendingId('pending-user');
+    const pendingAssistantId = buildPendingId('pending-assistant');
+    const controller = new AbortController();
+    let currentUserMessageId = pendingUserId;
+    let currentAssistantMessageId = pendingAssistantId;
+    let serverReportedError = '';
+    let streamCompleted = false;
+
+    activeStreamControllerRef.current = controller;
+    setDraft('');
+    setSessionItem((currentSession) => {
+      if (!currentSession) {
+        return currentSession;
+      }
+
+      return {
+        ...currentSession,
+        messages: [
+          ...currentSession.messages,
+          {
+            id: pendingUserId,
+            role: 'user',
+            content: trimmedDraft,
+            created_at: createdAt,
+            sources: [],
+          },
+          {
+            id: pendingAssistantId,
+            role: 'assistant',
+            content: '',
+            llm_model: 'frontend-chat-panel',
+            created_at: createdAt,
+            sources: [],
+            isStreaming: true,
+          },
+        ],
+      };
+    });
 
     try {
-      const existingAssistantCount = countAssistantMessages(sessionItem);
-      const updatedSession = await chatsApi.addMessage(chatId, {
-        role: 'user',
-        content: trimmedDraft,
-        model_name: 'frontend-chat-panel',
-      });
+      await chatsApi.streamMessage(
+        chatId,
+        {
+          content: trimmedDraft,
+          model_name: 'frontend-chat-panel',
+        },
+        {
+          signal: controller.signal,
+          onEvent: ({ type, payload }) => {
+            if (type === 'message_start') {
+              setSessionItem((currentSession) => {
+                if (!currentSession) {
+                  return currentSession;
+                }
 
-      setSessionItem(updatedSession);
-      setDraft('');
-      await waitForAssistantReply(existingAssistantCount);
+                return {
+                  ...currentSession,
+                  messages: currentSession.messages.map((message) => {
+                    if (message.id === pendingUserId) {
+                      currentUserMessageId = payload.user_message_id;
+                      return {
+                        ...message,
+                        id: currentUserMessageId,
+                      };
+                    }
+
+                    if (message.id === pendingAssistantId) {
+                      currentAssistantMessageId = payload.assistant_message_id;
+                      return {
+                        ...message,
+                        id: currentAssistantMessageId,
+                        llm_model: payload.model_name || message.llm_model,
+                        sources: payload.sources || [],
+                        isStreaming: true,
+                      };
+                    }
+
+                    return message;
+                  }),
+                };
+              });
+              return;
+            }
+
+            if (type === 'message_delta') {
+              if (!payload?.delta) {
+                return;
+              }
+
+              setSessionItem((currentSession) => {
+                if (!currentSession) {
+                  return currentSession;
+                }
+
+                return {
+                  ...currentSession,
+                  messages: replaceMessage(
+                    currentSession.messages,
+                    (message) => message.id === currentAssistantMessageId,
+                    (() => {
+                      const currentAssistant =
+                        currentSession.messages.find(
+                          (message) => message.id === currentAssistantMessageId,
+                        ) ||
+                        {};
+                      return {
+                        ...currentAssistant,
+                        id: currentAssistantMessageId,
+                        role: 'assistant',
+                        content: `${currentAssistant.content || ''}${payload.delta}`,
+                        created_at: currentAssistant.created_at || createdAt,
+                        sources: currentAssistant.sources || [],
+                        llm_model: currentAssistant.llm_model || 'frontend-chat-panel',
+                        isStreaming: true,
+                      };
+                    })(),
+                  ),
+                };
+              });
+              return;
+            }
+
+            if (type === 'message_complete') {
+              streamCompleted = true;
+              setAssistantStatus('received');
+              setSessionItem((currentSession) => {
+                if (!currentSession) {
+                  return currentSession;
+                }
+
+                return {
+                  ...currentSession,
+                  messages: replaceMessage(
+                    currentSession.messages,
+                    (message) =>
+                      message.id === currentAssistantMessageId ||
+                      message.id === payload?.assistant_message?.id,
+                    {
+                      ...payload.assistant_message,
+                      isStreaming: false,
+                    },
+                  ),
+                };
+              });
+              return;
+            }
+
+            if (type === 'error') {
+              serverReportedError =
+                typeof payload?.detail === 'string' && payload.detail.trim()
+                  ? payload.detail
+                  : 'Unable to stream the assistant response right now.';
+              setAssistantStatus('idle');
+              setSendError(serverReportedError);
+              setSessionItem((currentSession) => {
+                if (!currentSession) {
+                  return currentSession;
+                }
+
+                return {
+                  ...currentSession,
+                  messages: removeMessage(currentSession.messages, currentAssistantMessageId),
+                };
+              });
+            }
+          },
+        },
+      );
     } catch (submitError) {
-      const message = getApiErrorMessage(submitError, 'Unable to send the message right now.');
-      setSendError(message);
-      setAssistantStatus('idle');
+      if (!isAbortError(submitError)) {
+        const message = getApiErrorMessage(submitError, 'Unable to send the message right now.');
+        setSendError(message);
+        setAssistantStatus('idle');
+        setSessionItem((currentSession) => {
+          if (!currentSession) {
+            return currentSession;
+          }
+
+          return {
+            ...currentSession,
+            messages: removeMessage(
+              removeMessage(currentSession.messages, currentAssistantMessageId),
+              currentUserMessageId,
+            ),
+          };
+        });
+      }
     } finally {
-      setIsSending(false);
+      if (activeStreamControllerRef.current === controller) {
+        activeStreamControllerRef.current = null;
+      }
+
+      if (!controller.signal.aborted) {
+        setIsSending(false);
+        await refreshSessionsList();
+
+        if (streamCompleted || serverReportedError) {
+          await refreshSessionItem().catch(() => null);
+        }
+      }
     }
   }
 
@@ -182,6 +378,8 @@ export function ChatSessionDetailPage() {
     : sessionItem.document_id || 'No linked document';
   const assistantMessages = countAssistantMessages(sessionItem);
   const isChatBlocked = documentItem ? !isDocumentReady(documentItem.status) : false;
+  const latestAssistantMessage = getLatestAssistantMessage(sessionItem);
+  const latestSources = latestAssistantMessage?.sources || [];
 
   return (
     <section className="panel-stack">
@@ -279,41 +477,44 @@ export function ChatSessionDetailPage() {
                         <span className={`status-badge status-badge--${tone}`}>{roleLabel}</span>
                         <span>{formatDocumentDate(message.created_at)}</span>
                       </div>
-                      <p>{message.content}</p>
-                      {message.model_name ? (
+
+                      {message.isStreaming && !message.content ? (
+                        <>
+                          <div className="chat-message-card__typing">
+                            <span />
+                            <span />
+                            <span />
+                          </div>
+                          <p className="chat-message-card__helper">
+                            Grounding the answer against the linked document and streaming the response.
+                          </p>
+                        </>
+                      ) : (
+                        <p className="chat-message-card__body">{message.content}</p>
+                      )}
+
+                      {message.role === 'assistant' && message.sources?.length ? (
+                        <div className="chat-message-card__sources">
+                          {message.sources.map((source) => (
+                            <div className="chat-source-chip" key={`${message.id}-${source.chunk_id}`}>
+                              <strong>{formatChatSourcePageRange(source)}</strong>
+                              <span>{formatChatSourceSimilarity(source)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {message.llm_model ? (
                         <small className="chat-message-card__meta">
-                          Model hint: {message.model_name}
+                          Model: {message.llm_model}
                         </small>
                       ) : null}
                     </article>
                   );
                 })}
-
-                {assistantStatus === 'waiting' ? (
-                  <article className="chat-message-card chat-message-card--assistant chat-message-card--pending">
-                    <div className="chat-message-card__header">
-                      <span className="status-badge status-badge--success">Assistant</span>
-                      <span>Generating...</span>
-                    </div>
-                    <div className="chat-message-card__typing">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <p className="chat-message-card__helper">
-                      Waiting for the backend answer pipeline to append an assistant message to this session.
-                    </p>
-                  </article>
-                ) : null}
               </div>
             )}
           </div>
-
-          {assistantStatus === 'unavailable' ? (
-            <InlineMessage tone="neutral">
-              Your message was stored successfully, but this backend stub does not synthesize assistant replies yet. The UI is ready to display them as soon as the backend starts returning assistant messages.
-            </InlineMessage>
-          ) : null}
 
           <div className="chat-panel__prompt-row">
             {QUICK_PROMPTS.map((prompt) => (
@@ -322,6 +523,7 @@ export function ChatSessionDetailPage() {
                 type="button"
                 className="pill chat-panel__prompt-chip"
                 onClick={() => setDraft(prompt)}
+                disabled={isSending || isChatBlocked}
               >
                 {prompt}
               </button>
@@ -343,10 +545,10 @@ export function ChatSessionDetailPage() {
 
             <div className="chat-panel__composer-actions">
               <p>
-                Messages are stored through the backend session endpoint. Assistant replies will appear automatically when the answer pipeline is connected.
+                Responses stream in real time and are persisted with their supporting citations when the turn completes.
               </p>
               <button type="submit" className="button" disabled={isSending || isChatBlocked}>
-                {isSending ? 'Sending...' : 'Send message'}
+                {isSending ? 'Streaming reply...' : 'Send message'}
               </button>
             </div>
           </form>
@@ -389,28 +591,33 @@ export function ChatSessionDetailPage() {
           <article className="chat-context-card">
             <p className="eyebrow">Citations</p>
             <h4>Answer evidence panel</h4>
-            <p>
-              The current backend does not return page-level citations yet. This panel is reserved for page spans and excerpt cards once answer generation is connected.
-            </p>
-            <div className="chat-context-card__evidence">
-              <div>
-                <span>Expected next</span>
-                <strong>Page ranges and quoted snippets</strong>
+            {latestSources.length ? (
+              <div className="chat-context-card__evidence">
+                {latestSources.map((source) => (
+                  <div key={`${latestAssistantMessage.id}-${source.chunk_id}`}>
+                    <span>
+                      {formatChatSourcePageRange(source)} · {formatChatSourceSimilarity(source)}
+                    </span>
+                    <strong>{source.quoted_text || 'Quoted excerpt unavailable.'}</strong>
+                  </div>
+                ))}
               </div>
-              <div>
-                <span>Why it matters</span>
-                <strong>Answers will feel inspectable instead of opaque.</strong>
-              </div>
-            </div>
+            ) : (
+              <p>
+                {assistantStatus === 'streaming'
+                  ? 'Matching document chunks will appear here as soon as the backend announces the source set for this answer.'
+                  : 'Ask a question to see page-level support and quoted snippets for the latest assistant answer.'}
+              </p>
+            )}
           </article>
 
           <article className="chat-context-card">
             <p className="eyebrow">Response pipeline</p>
-            <h4>Current backend posture</h4>
+            <h4>Current session state</h4>
             <ul className="feature-list">
-              <li>User messages are persisted to the session successfully.</li>
-              <li>Assistant messages will render automatically when the backend starts appending them.</li>
-              <li>The loading state already waits for a follow-up assistant message before resolving.</li>
+              <li>User turns are appended optimistically so the conversation never feels blocked.</li>
+              <li>Assistant text streams token by token from the backend SSE endpoint.</li>
+              <li>Completed replies are reconciled back to the persisted session state.</li>
             </ul>
           </article>
 

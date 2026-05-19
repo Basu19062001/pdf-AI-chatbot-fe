@@ -78,3 +78,44 @@ export function getMessageRoleTone(role) {
 export function countAssistantMessages(session) {
   return session?.messages?.filter((message) => message.role === 'assistant').length || 0;
 }
+
+export function getLatestAssistantMessage(session) {
+  const messages = session?.messages || [];
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === 'assistant') {
+      return messages[index];
+    }
+  }
+
+  return null;
+}
+
+export function formatChatSourcePageRange(source) {
+  const start = source?.page_number_start;
+  const end = source?.page_number_end;
+
+  if (Number.isInteger(start) && Number.isInteger(end) && start !== end) {
+    return `Pages ${start}-${end}`;
+  }
+
+  if (Number.isInteger(start)) {
+    return `Page ${start}`;
+  }
+
+  if (Number.isInteger(end)) {
+    return `Page ${end}`;
+  }
+
+  return 'Page unavailable';
+}
+
+export function formatChatSourceSimilarity(source) {
+  const similarity = source?.similarity_score;
+
+  if (typeof similarity !== 'number' || Number.isNaN(similarity)) {
+    return 'Similarity unavailable';
+  }
+
+  return `${Math.round(similarity * 100)}% match`;
+}

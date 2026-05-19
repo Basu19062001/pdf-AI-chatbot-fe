@@ -342,7 +342,7 @@ export function ChatsPage() {
                     </div>
 
                     <div className="document-card__meta">
-                      <span>{session.messages.length} messages</span>
+                      <span>{session.messages?.length || 0} messages</span>
                       <span>Created {formatDocumentDate(session.created_at)}</span>
                       <span>{linkedDocument ? 'Source attached' : 'Source unavailable'}</span>
                     </div>
