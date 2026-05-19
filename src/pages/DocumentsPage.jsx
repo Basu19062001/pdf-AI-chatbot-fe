@@ -64,7 +64,7 @@ export function DocumentsPage() {
       setError('');
 
       try {
-        const nextItems = await documentsApi.listDocuments();
+        const nextItems = await documentsApi.listDocuments({ force: silent });
         setItems(nextItems);
       } catch (loadError) {
         setError(getApiErrorMessage(loadError, 'Unable to load your document library.'));
@@ -260,8 +260,7 @@ export function DocumentsPage() {
           <p className="eyebrow">Document management</p>
           <h2>Your PDF library is now live.</h2>
           <p>
-            Upload documents, monitor processing outcomes, and move only ready PDFs
-            forward into chat workflows.
+            Upload documents, monitor processing, and move only ready PDFs into chat.
           </p>
         </div>
         <div className="document-page__header-actions">
@@ -471,7 +470,14 @@ export function DocumentsPage() {
 
                   <div className="document-card-grid">
                     {attentionItems.map((item) => (
-                      <article className="panel document-card" key={item.id}>
+                      <article
+                        className={`panel document-card ${
+                          isDocumentFailed(item.status)
+                            ? 'document-card--failed'
+                            : 'document-card--pending'
+                        }`}
+                        key={item.id}
+                      >
                         <div className="document-card__header">
                           <div>
                             <p className="eyebrow">
@@ -492,6 +498,15 @@ export function DocumentsPage() {
                         <p className="document-card__message">
                           {getDocumentStatusMessage(item)}
                         </p>
+
+                        <div className="document-card__context">
+                          <span className="document-card__context-label">Workspace guidance</span>
+                          <strong>
+                            {isDocumentFailed(item.status)
+                              ? 'This file needs replacement before it can support grounded chat.'
+                              : 'Keep this file visible while ingestion completes in the background.'}
+                          </strong>
+                        </div>
 
                         <div className="document-card__actions">
                           <Link className="button button--ghost" to={`/app/documents/${item.id}`}>
@@ -540,6 +555,13 @@ export function DocumentsPage() {
                         <p className="document-card__message">
                           {getDocumentStatusMessage(item)}
                         </p>
+
+                        <div className="document-card__context">
+                          <span className="document-card__context-label">Chat readiness</span>
+                          <strong>
+                            This source is fully prepared for a dedicated conversation workspace.
+                          </strong>
+                        </div>
 
                         <div className="document-card__actions">
                           <Link className="button button--ghost" to={`/app/documents/${item.id}`}>
