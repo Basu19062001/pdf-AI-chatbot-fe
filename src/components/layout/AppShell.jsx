@@ -49,8 +49,14 @@ const routeMeta = [
   {
     pattern: '/app/chats',
     eyebrow: 'Chats',
-    title: 'Conversation workflows are queued up.',
-    description: 'Chat sessions and source-aware answers will be layered into this area after documents.',
+    title: 'Create and organize document-grounded chat sessions.',
+    description: 'Choose a processed PDF, open a dedicated conversation route, and prepare the workspace for the full AI panel.',
+  },
+  {
+    pattern: '/app/chats/:chatId',
+    eyebrow: 'Chat detail',
+    title: 'Inspect one conversation route and its linked source document.',
+    description: 'This shell keeps the session timeline, source context, and message history together before the Phase 5 chat experience lands.',
   },
   {
     pattern: '/app/sessions',

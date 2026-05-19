@@ -100,7 +100,7 @@ export function DocumentDetailPage() {
 
           <div className="document-detail__action-row">
             {isReady ? (
-              <Link className="button" to="/app/chats">
+              <Link className="button" to={`/app/chats?documentId=${documentItem.id}`}>
                 Start chat
               </Link>
             ) : (

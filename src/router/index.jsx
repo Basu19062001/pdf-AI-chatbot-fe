@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 
 import { AppShell } from '../components/layout/AppShell';
 import { AuthLayout } from '../components/layout/AuthLayout';
+import { ChatSessionDetailPage } from '../pages/ChatSessionDetailPage';
 import { ChatsPage } from '../pages/ChatsPage';
 import { DocumentDetailPage } from '../pages/DocumentDetailPage';
 import { ProtectedRoute } from '../routes/ProtectedRoute';
@@ -64,6 +65,10 @@ export const router = createBrowserRouter([
           {
             path: 'chats',
             element: <ChatsPage />,
+          },
+          {
+            path: 'chats/:chatId',
+            element: <ChatSessionDetailPage />,
           },
           {
             path: 'sessions',
