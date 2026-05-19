@@ -1,9 +1,12 @@
 import {
   buildDefaultChatTitle,
+  countAssistantMessages,
   formatChatStatus,
   getChatSessionTitle,
   getChatStatusTone,
   getLastMessagePreview,
+  getMessageRoleLabel,
+  getMessageRoleTone,
 } from './chats';
 
 describe('chat utils', () => {
@@ -26,5 +29,11 @@ describe('chat utils', () => {
     expect(getLastMessagePreview({ messages: [] })).toBe(
       'No messages have been added to this session yet.',
     );
+  });
+
+  it('formats message role metadata for the chat panel', () => {
+    expect(getMessageRoleLabel('assistant')).toBe('Assistant');
+    expect(getMessageRoleTone('system')).toBe('warning');
+    expect(countAssistantMessages({ messages: [{ role: 'assistant' }, { role: 'user' }] })).toBe(1);
   });
 });

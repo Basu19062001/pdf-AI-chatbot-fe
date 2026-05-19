@@ -15,4 +15,9 @@ export const chatsApi = {
     const response = await apiClient.post('/chats/sessions', payload);
     return response.data;
   },
+
+  async addMessage(sessionId, payload) {
+    const response = await apiClient.post(`/chats/sessions/${sessionId}/messages`, payload);
+    return response.data;
+  },
 };

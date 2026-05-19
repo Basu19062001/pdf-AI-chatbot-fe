@@ -50,3 +50,31 @@ export function getLastMessagePreview(session) {
 
   return lastMessage.content;
 }
+
+export function getMessageRoleLabel(role) {
+  if (role === 'assistant') {
+    return 'Assistant';
+  }
+
+  if (role === 'system') {
+    return 'System';
+  }
+
+  return 'You';
+}
+
+export function getMessageRoleTone(role) {
+  if (role === 'assistant') {
+    return 'success';
+  }
+
+  if (role === 'system') {
+    return 'warning';
+  }
+
+  return 'neutral';
+}
+
+export function countAssistantMessages(session) {
+  return session?.messages?.filter((message) => message.role === 'assistant').length || 0;
+}
