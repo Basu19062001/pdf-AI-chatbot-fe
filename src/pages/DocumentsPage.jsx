@@ -64,7 +64,7 @@ export function DocumentsPage() {
       setError('');
 
       try {
-        const nextItems = await documentsApi.listDocuments();
+        const nextItems = await documentsApi.listDocuments({ force: silent });
         setItems(nextItems);
       } catch (loadError) {
         setError(getApiErrorMessage(loadError, 'Unable to load your document library.'));

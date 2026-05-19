@@ -61,8 +61,8 @@ export function ChatsPage() {
 
       try {
         const [nextSessions, nextDocuments] = await Promise.all([
-          chatsApi.listSessions(),
-          documentsApi.listDocuments(),
+          chatsApi.listSessions({ force: silent }),
+          documentsApi.listDocuments({ force: silent }),
         ]);
         setSessions(nextSessions);
         setDocuments(nextDocuments);
