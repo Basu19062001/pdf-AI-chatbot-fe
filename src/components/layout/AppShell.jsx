@@ -247,7 +247,9 @@ export function AppShell() {
             </div>
           </div>
 
-          <Outlet />
+          <div className="app-shell__page-stage" key={location.pathname}>
+            <Outlet />
+          </div>
         </div>
       </section>
     </div>

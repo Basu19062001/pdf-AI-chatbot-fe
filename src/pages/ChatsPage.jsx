@@ -327,7 +327,7 @@ export function ChatsPage() {
                 const statusTone = getChatStatusTone(session.status);
 
                 return (
-                  <article className="panel document-card" key={session.id}>
+                  <article className="panel document-card document-card--chat" key={session.id}>
                     <div className="document-card__header">
                       <div>
                         <p className="eyebrow">Updated {formatDocumentDate(session.updated_at)}</p>
@@ -346,9 +346,19 @@ export function ChatsPage() {
                     <div className="document-card__meta">
                       <span>{session.messages.length} messages</span>
                       <span>Created {formatDocumentDate(session.created_at)}</span>
+                      <span>{linkedDocument ? 'Source attached' : 'Source unavailable'}</span>
                     </div>
 
                     <p className="document-card__message">{getLastMessagePreview(session)}</p>
+
+                    <div className="document-card__context">
+                      <span className="document-card__context-label">Source context</span>
+                      <strong>
+                        {linkedDocument
+                          ? `Grounded in ${getDocumentDisplayTitle(linkedDocument)}.`
+                          : 'This session is missing its document record, so source inspection is limited.'}
+                      </strong>
+                    </div>
 
                     <div className="document-card__actions">
                       <Link className="button" to={`/app/chats/${session.id}`}>

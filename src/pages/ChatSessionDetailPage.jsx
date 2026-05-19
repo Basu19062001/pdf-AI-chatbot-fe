@@ -354,7 +354,7 @@ export function ChatSessionDetailPage() {
         </div>
 
         <aside className="panel chat-panel__context">
-          <div>
+          <div className="chat-panel__context-hero">
             <p className="eyebrow">Source context</p>
             <h3>{linkedDocumentTitle}</h3>
             <p className="document-detail__helper">
@@ -362,6 +362,10 @@ export function ChatSessionDetailPage() {
                 ? 'This panel keeps the document context visible while you read answers and compose follow-up questions.'
                 : 'The session is linked by document ID only, so source metadata is limited until the document record is available.'}
             </p>
+            <div className="chat-context-pill-row">
+              <span className="pill">{documentItem?.total_pages ?? 'Pending'} pages</span>
+              <span className="pill">{documentItem ? formatDocumentDate(documentItem.updated_at) : 'Source pending'}</span>
+            </div>
           </div>
 
           <div className="document-stat-grid">
@@ -389,6 +393,16 @@ export function ChatSessionDetailPage() {
             <p>
               The current backend does not return page-level citations yet. This panel is reserved for source references, page spans, and excerpt cards once answer generation is connected.
             </p>
+            <div className="chat-context-card__evidence">
+              <div>
+                <span>Expected next</span>
+                <strong>Page ranges and quoted snippets</strong>
+              </div>
+              <div>
+                <span>Why it matters</span>
+                <strong>Answers will feel inspectable instead of opaque.</strong>
+              </div>
+            </div>
           </article>
 
           <article className="chat-context-card">
