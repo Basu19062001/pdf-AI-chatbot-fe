@@ -5,67 +5,64 @@ export function DashboardPage() {
 
   return (
     <section className="panel-stack">
-      <article className="page-section-header panel">
+      <article className="panel dashboard-hero">
         <div>
-          <p className="eyebrow">App shell</p>
-          <h2>Phase 2 foundation is now active.</h2>
+          <p className="eyebrow">Workspace briefing</p>
+          <h2>Everything important, above the fold.</h2>
           <p>
-            The workspace shell, guarded routes, user menu, and shared app surfaces are
-            in place so document and chat features can land on stable UI foundations.
+            Keep account context, session posture, and document workflow state visible without turning the page into a bulky dashboard.
           </p>
         </div>
-        <span className="status-chip">Roadmap phase 2</span>
+        <div className="dashboard-hero__chips">
+          <span className="status-chip">Secure</span>
+          <span className="pill pill--highlight">Compact</span>
+        </div>
       </article>
 
-      <div className="dashboard-grid">
-      <article className="panel">
-        <p className="eyebrow">Authenticated user</p>
-        <h2>{user?.full_name}</h2>
-        <dl className="detail-list">
-          <div>
-            <dt>Email</dt>
-            <dd>{user?.email}</dd>
-          </div>
-          <div>
-            <dt>Role</dt>
-            <dd>{user?.role}</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>{user?.is_active ? 'Active' : 'Inactive'}</dd>
-          </div>
-        </dl>
-      </article>
+      <div className="dashboard-overview-grid">
+        <article className="panel dashboard-spotlight">
+          <p className="eyebrow">Operator</p>
+          <h2>{user?.full_name}</h2>
+          <p className="dashboard-spotlight__summary">
+            Your account anchors every protected route, document library action, and chat session.
+          </p>
+          <dl className="detail-list">
+            <div>
+              <dt>Email</dt>
+              <dd>{user?.email}</dd>
+            </div>
+            <div>
+              <dt>Role</dt>
+              <dd>{user?.role}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{user?.is_active ? 'Active' : 'Inactive'}</dd>
+            </div>
+          </dl>
+        </article>
 
-      <article className="panel">
-        <p className="eyebrow">Current session</p>
-        <h2>{session?.device_name || 'Current device'}</h2>
-        <dl className="detail-list">
-          <div>
-            <dt>Device type</dt>
-            <dd>{session?.device_type || 'Unknown'}</dd>
+        <article className="panel dashboard-metric-board">
+          <p className="eyebrow">Current session</p>
+          <div className="dashboard-metric-board__grid">
+            <div className="document-stat">
+              <span>Device</span>
+              <strong>{session?.device_name || 'Current device'}</strong>
+            </div>
+            <div className="document-stat">
+              <span>Type</span>
+              <strong>{session?.device_type || 'Unknown'}</strong>
+            </div>
+            <div className="document-stat">
+              <span>IP</span>
+              <strong>{session?.ip_address || 'Unavailable'}</strong>
+            </div>
+            <div className="document-stat">
+              <span>Expires</span>
+              <strong>{session?.expires_at ? new Date(session.expires_at).toLocaleString() : 'Unknown'}</strong>
+            </div>
           </div>
-          <div>
-            <dt>IP address</dt>
-            <dd>{session?.ip_address || 'Unavailable'}</dd>
-          </div>
-          <div>
-            <dt>Expires at</dt>
-            <dd>{session?.expires_at ? new Date(session.expires_at).toLocaleString() : 'Unknown'}</dd>
-          </div>
-        </dl>
-      </article>
-
-      <article className="panel panel--wide">
-        <p className="eyebrow">What is already production-ready</p>
-        <ul className="feature-list">
-          <li>Protected shell with sidebar navigation and top bar.</li>
-          <li>User profile menu with route actions and logout.</li>
-          <li>Shared skeleton loading while session bootstrap runs.</li>
-          <li>Global toast system ready for cross-app feedback.</li>
-          <li>Placeholder product sections for documents and chats.</li>
-        </ul>
-      </article>
+        </article>
       </div>
     </section>
   );

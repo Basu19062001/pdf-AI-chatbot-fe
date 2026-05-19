@@ -260,8 +260,7 @@ export function DocumentsPage() {
           <p className="eyebrow">Document management</p>
           <h2>Your PDF library is now live.</h2>
           <p>
-            Upload documents, monitor processing outcomes, and move only ready PDFs
-            forward into chat workflows.
+            Upload documents, monitor processing, and move only ready PDFs into chat.
           </p>
         </div>
         <div className="document-page__header-actions">

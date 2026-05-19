@@ -152,8 +152,7 @@ export function ChatsPage() {
           <p className="eyebrow">Chat session management</p>
           <h2>Organize conversations per processed document.</h2>
           <p>
-            Create a session from a ready PDF, review its linked source, and open a
-            dedicated conversation route that Phase 5 can extend into the full AI panel.
+            Create a session from a ready PDF and open a dedicated conversation route.
           </p>
         </div>
         <div className="document-page__header-actions">
@@ -231,8 +230,7 @@ export function ChatsPage() {
                 {isSubmitting ? 'Creating...' : 'Create session'}
               </button>
               <p>
-                Session creation is limited to processed documents so the next phase can
-                rely on a ready source context from the first message onward.
+                Session creation stays limited to processed documents so every chat starts with ready source context.
               </p>
             </div>
           </form>

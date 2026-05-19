@@ -190,8 +190,7 @@ export function ChatSessionDetailPage() {
           <p className="eyebrow">Chat session</p>
           <h2>{title}</h2>
           <p>
-            This detail shell anchors the selected conversation, its linked source
-            document, and the message timeline that Phase 5 will expand into the full AI panel.
+            Keep the conversation, linked document, and message timeline together in one reading workspace.
           </p>
         </div>
         <div className="document-detail__hero-actions">
@@ -344,7 +343,7 @@ export function ChatSessionDetailPage() {
 
             <div className="chat-panel__composer-actions">
               <p>
-                Messages are stored through the backend session endpoint. Assistant replies will appear automatically when the backend answer pipeline is connected.
+                Messages are stored through the backend session endpoint. Assistant replies will appear automatically when the answer pipeline is connected.
               </p>
               <button type="submit" className="button" disabled={isSending || isChatBlocked}>
                 {isSending ? 'Sending...' : 'Send message'}
@@ -359,8 +358,8 @@ export function ChatSessionDetailPage() {
             <h3>{linkedDocumentTitle}</h3>
             <p className="document-detail__helper">
               {documentItem
-                ? 'This panel keeps the document context visible while you read answers and compose follow-up questions.'
-                : 'The session is linked by document ID only, so source metadata is limited until the document record is available.'}
+                ? 'Keep the document context visible while reading answers and writing follow-up questions.'
+                : 'This session is linked by document ID only, so source metadata is still limited.'}
             </p>
             <div className="chat-context-pill-row">
               <span className="pill">{documentItem?.total_pages ?? 'Pending'} pages</span>
@@ -391,7 +390,7 @@ export function ChatSessionDetailPage() {
             <p className="eyebrow">Citations</p>
             <h4>Answer evidence panel</h4>
             <p>
-              The current backend does not return page-level citations yet. This panel is reserved for source references, page spans, and excerpt cards once answer generation is connected.
+              The current backend does not return page-level citations yet. This panel is reserved for page spans and excerpt cards once answer generation is connected.
             </p>
             <div className="chat-context-card__evidence">
               <div>
