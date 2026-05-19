@@ -1880,6 +1880,34 @@ select {
   font-size: 0.92rem;
 }
 
+.chat-message-card__body {
+  white-space: pre-wrap;
+}
+
+.chat-message-card__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chat-source-chip {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(30, 102, 115, 0.12);
+  border-radius: 14px;
+  background: rgba(242, 248, 246, 0.9);
+}
+
+.chat-source-chip strong {
+  font-size: 0.78rem;
+}
+
+.chat-source-chip span {
+  color: var(--text-soft);
+  font-size: 0.76rem;
+}
+
 .chat-message-card__typing {
   display: inline-flex;
   gap: 0.35rem;

@@ -1,9 +1,12 @@
 import {
   buildDefaultChatTitle,
   countAssistantMessages,
+  formatChatSourcePageRange,
+  formatChatSourceSimilarity,
   formatChatStatus,
   getChatSessionTitle,
   getChatStatusTone,
+  getLatestAssistantMessage,
   getLastMessagePreview,
   getMessageRoleLabel,
   getMessageRoleTone,
@@ -35,5 +38,21 @@ describe('chat utils', () => {
     expect(getMessageRoleLabel('assistant')).toBe('Assistant');
     expect(getMessageRoleTone('system')).toBe('warning');
     expect(countAssistantMessages({ messages: [{ role: 'assistant' }, { role: 'user' }] })).toBe(1);
+  });
+
+  it('returns the latest assistant message and formats source metadata', () => {
+    const latestAssistant = getLatestAssistantMessage({
+      messages: [
+        { id: '1', role: 'user', content: 'Hello' },
+        { id: '2', role: 'assistant', content: 'First answer' },
+        { id: '3', role: 'assistant', content: 'Latest answer' },
+      ],
+    });
+
+    expect(latestAssistant?.id).toBe('3');
+    expect(
+      formatChatSourcePageRange({ page_number_start: 4, page_number_end: 6 }),
+    ).toBe('Pages 4-6');
+    expect(formatChatSourceSimilarity({ similarity_score: 0.873 })).toBe('87% match');
   });
 });

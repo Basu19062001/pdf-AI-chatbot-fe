@@ -20,10 +20,75 @@ export const publicClient = axios.create({
   timeout: 15000,
 });
 
+export function getApiBaseUrl() {
+  return baseURL;
+}
+
 export function configureApiClient({ getAccessToken, refreshSession, onUnauthorized }) {
   accessTokenGetter = getAccessToken;
   refreshSessionHandler = refreshSession;
   unauthorizedHandler = onUnauthorized;
+}
+
+async function getRefreshedAccessToken() {
+  if (!refreshSessionHandler) {
+    return null;
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = refreshSessionHandler();
+  }
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+function withAuthorizationHeader(headers, token) {
+  const nextHeaders = new Headers(headers || {});
+
+  if (token) {
+    nextHeaders.set('Authorization', `Bearer ${token}`);
+  }
+
+  return nextHeaders;
+}
+
+export async function authorizedFetch(path, init = {}) {
+  const requestUrl = String(path || '');
+  const isAuthRequest = authPathFragments.some((fragment) => requestUrl.includes(fragment));
+
+  async function execute(token) {
+    const headers = withAuthorizationHeader(init.headers, token);
+    return fetch(`${baseURL}${requestUrl}`, {
+      ...init,
+      headers,
+    });
+  }
+
+  const initialToken = accessTokenGetter?.();
+  let response = await execute(initialToken);
+
+  if (response.status !== 401 || isAuthRequest) {
+    return response;
+  }
+
+  const nextAccessToken = await getRefreshedAccessToken();
+
+  if (!nextAccessToken) {
+    unauthorizedHandler?.();
+    return response;
+  }
+
+  response = await execute(nextAccessToken);
+
+  if (response.status === 401) {
+    unauthorizedHandler?.();
+  }
+
+  return response;
 }
 
 apiClient.interceptors.request.use((config) => {
@@ -58,12 +123,7 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      if (!refreshPromise) {
-        refreshPromise = refreshSessionHandler();
-      }
-
-      const nextAccessToken = await refreshPromise;
-      refreshPromise = null;
+      const nextAccessToken = await getRefreshedAccessToken();
 
       if (!nextAccessToken) {
         unauthorizedHandler?.();
@@ -74,7 +134,6 @@ apiClient.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
       return apiClient(originalRequest);
     } catch (refreshError) {
-      refreshPromise = null;
       unauthorizedHandler?.();
       throw refreshError;
     }
