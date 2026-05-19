@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <defs>
     <linearGradient id="faviconFill" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f0b15d" />
-      <stop offset="100%" stop-color="#1e6673" />
+      <stop offset="0%" stop-color="#c08a5c" />
+      <stop offset="100%" stop-color="#5c6f7f" />
     </linearGradient>
   </defs>
   <rect x="4" y="4" width="40" height="40" rx="14" fill="url(#faviconFill)" />
@@ -12,7 +12,7 @@
   />
   <path
     d="M19.8 18.2h8.8M19.8 22.8h8.8M19.8 27.4h6.4"
-    stroke="#1e6673"
+    stroke="#465765"
     stroke-width="2"
     stroke-linecap="round"
     opacity="0.78"

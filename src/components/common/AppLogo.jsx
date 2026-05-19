@@ -6,8 +6,8 @@ export function AppLogo({ className = '', label = 'PDF Atlas' }) {
       <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id="atlasLogoFill" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f0b15d" />
-            <stop offset="100%" stopColor="#1e6673" />
+            <stop offset="0%" stopColor="#c08a5c" />
+            <stop offset="100%" stopColor="#5c6f7f" />
           </linearGradient>
         </defs>
         <rect x="4" y="4" width="40" height="40" rx="14" fill="url(#atlasLogoFill)" />
@@ -17,7 +17,7 @@ export function AppLogo({ className = '', label = 'PDF Atlas' }) {
         />
         <path
           d="M19.8 18.2h8.8M19.8 22.8h8.8M19.8 27.4h6.4"
-          stroke="#1e6673"
+          stroke="#465765"
           strokeWidth="2"
           strokeLinecap="round"
           opacity="0.78"
