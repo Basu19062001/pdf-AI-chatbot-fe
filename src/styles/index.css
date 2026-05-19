@@ -3106,6 +3106,9 @@ body::before {
 }
 
 .app-shell__topbar {
+  position: relative;
+  z-index: 40;
+  overflow: visible;
   padding: 0.72rem 0.85rem;
   background: linear-gradient(135deg, rgba(24, 37, 42, 0.98) 0%, rgba(34, 53, 60, 0.96) 56%, rgba(32, 96, 108, 0.86) 100%);
   color: var(--text-inverse);
@@ -3143,8 +3146,8 @@ body::before {
 }
 
 .app-shell__profile {
-  display: grid;
-  gap: 0.55rem;
+  position: relative;
+  display: inline-grid;
 }
 
 .app-shell__profile-trigger {
@@ -3190,12 +3193,14 @@ body::before {
 }
 
 .app-shell__menu-stage {
-  display: flex;
-  justify-content: flex-end;
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  z-index: 60;
 }
 
 .app-shell__menu {
-  width: min(100%, 300px);
+  width: min(300px, calc(100vw - 1.6rem));
   display: grid;
   gap: 0.55rem;
   padding: 0.6rem;
@@ -3203,6 +3208,7 @@ body::before {
   background: rgba(255, 255, 255, 0.98);
   color: var(--text);
   box-shadow: var(--shadow-strong);
+  isolation: isolate;
 }
 
 .app-shell__menu-header {
@@ -3892,9 +3898,17 @@ body::before {
   }
 
   .app-shell__nav-link,
-  .app-shell__profile-trigger,
-  .app-shell__menu {
+  .app-shell__profile-trigger {
     width: 100%;
+  }
+
+  .app-shell__menu-stage {
+    left: 0;
+    right: auto;
+  }
+
+  .app-shell__menu {
+    width: min(320px, calc(100vw - 1.4rem));
   }
 
   .button {

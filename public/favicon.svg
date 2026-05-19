@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="faviconFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0b15d" />
+      <stop offset="100%" stop-color="#1e6673" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="40" height="40" rx="14" fill="url(#faviconFill)" />
+  <path
+    d="M15 14.5h12.2a5.8 5.8 0 0 1 5.8 5.8v13.2H20.8A5.8 5.8 0 0 0 15 39.3V14.5Z"
+    fill="rgba(255,255,255,0.96)"
+  />
+  <path
+    d="M19.8 18.2h8.8M19.8 22.8h8.8M19.8 27.4h6.4"
+    stroke="#1e6673"
+    stroke-width="2"
+    stroke-linecap="round"
+    opacity="0.78"
+  />
+  <path
+    d="M33 33.5H20.8A5.8 5.8 0 0 0 15 39.3h12.2a5.8 5.8 0 0 1 5.8-5.8Z"
+    fill="rgba(255,255,255,0.82)"
+  />
+</svg>

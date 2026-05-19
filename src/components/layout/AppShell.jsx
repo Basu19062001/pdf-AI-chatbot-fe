@@ -150,48 +150,48 @@ export function AppShell() {
                   <small>{user?.role || 'user'}</small>
                 </span>
               </button>
+
+              {isMenuOpen ? (
+                <div className="app-shell__menu-stage">
+                  <div className="app-shell__menu">
+                    <div className="app-shell__menu-header">
+                      <span className="app-shell__menu-avatar">{initials}</span>
+                      <div className="app-shell__menu-copy">
+                        <strong>{user?.full_name || 'Unknown user'}</strong>
+                        <p>{user?.email || 'No email available'}</p>
+                        <span>{user?.role || 'user'} account</span>
+                      </div>
+                    </div>
+
+                    <div className="app-shell__menu-actions" role="menu">
+                      <button type="button" role="menuitem" onClick={() => navigate('/app/profile')}>
+                        <span className="app-shell__menu-action-title">Profile</span>
+                        <small>Account identity and device context</small>
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => navigate('/app/sessions')}>
+                        <span className="app-shell__menu-action-title">Sessions</span>
+                        <small>Active devices and refresh lifecycle</small>
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => navigate('/app/dashboard')}>
+                        <span className="app-shell__menu-action-title">Overview</span>
+                        <small>Return to workspace summary</small>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleLogout}
+                        className="app-shell__menu-action--danger"
+                      >
+                        <span className="app-shell__menu-action-title">Logout</span>
+                        <small>End this browser session</small>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
-
-        {isMenuOpen ? (
-          <div className="app-shell__menu-stage">
-            <div className="app-shell__menu">
-              <div className="app-shell__menu-header">
-                <span className="app-shell__menu-avatar">{initials}</span>
-                <div className="app-shell__menu-copy">
-                  <strong>{user?.full_name || 'Unknown user'}</strong>
-                  <p>{user?.email || 'No email available'}</p>
-                  <span>{user?.role || 'user'} account</span>
-                </div>
-              </div>
-
-              <div className="app-shell__menu-actions" role="menu">
-                <button type="button" role="menuitem" onClick={() => navigate('/app/profile')}>
-                  <span className="app-shell__menu-action-title">Profile</span>
-                  <small>Account identity and device context</small>
-                </button>
-                <button type="button" role="menuitem" onClick={() => navigate('/app/sessions')}>
-                  <span className="app-shell__menu-action-title">Sessions</span>
-                  <small>Active devices and refresh lifecycle</small>
-                </button>
-                <button type="button" role="menuitem" onClick={() => navigate('/app/dashboard')}>
-                  <span className="app-shell__menu-action-title">Overview</span>
-                  <small>Return to workspace summary</small>
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleLogout}
-                  className="app-shell__menu-action--danger"
-                >
-                  <span className="app-shell__menu-action-title">Logout</span>
-                  <small>End this browser session</small>
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
       </header>
 
       <div className="app-shell__layout">
