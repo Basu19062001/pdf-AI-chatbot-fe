@@ -28,6 +28,8 @@ const QUICK_PROMPTS = [
   'Explain the main sections in plain language.',
 ];
 
+const CHAT_MODEL = import.meta.env.VITE_OPENAI_CHAT_MODEL?.trim() || '';
+
 function buildPendingId(prefix) {
   const suffix = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return `${prefix}-${suffix}`;
@@ -176,7 +178,7 @@ export function ChatSessionDetailPage() {
             id: pendingAssistantId,
             role: 'assistant',
             content: '',
-            llm_model: 'frontend-chat-panel',
+            llm_model: CHAT_MODEL || null,
             created_at: createdAt,
             sources: [],
             isStreaming: true,
@@ -190,7 +192,6 @@ export function ChatSessionDetailPage() {
         chatId,
         {
           content: trimmedDraft,
-          model_name: 'frontend-chat-panel',
         },
         {
           signal: controller.signal,
@@ -258,7 +259,7 @@ export function ChatSessionDetailPage() {
                         content: `${currentAssistant.content || ''}${payload.delta}`,
                         created_at: currentAssistant.created_at || createdAt,
                         sources: currentAssistant.sources || [],
-                        llm_model: currentAssistant.llm_model || 'frontend-chat-panel',
+                        llm_model: currentAssistant.llm_model || CHAT_MODEL || null,
                         isStreaming: true,
                       };
                     })(),

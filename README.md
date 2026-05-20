@@ -267,12 +267,14 @@ Use [`src/.env.example`](./src/.env.example) as the base template.
 | --- | --- |
 | `VITE_APP_NAME` | Frontend display name |
 | `VITE_API_BASE_URL` | Full backend API base URL, for example `http://localhost:8000/api/v1` |
+| `VITE_OPENAI_CHAT_MODEL` | Optional chat model name sent with streaming chat requests |
 
 ### Example
 
 ```env
 VITE_APP_NAME=PDF Chatbot
 VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_OPENAI_CHAT_MODEL=gpt-4o
 ```
 
 ## Local Development

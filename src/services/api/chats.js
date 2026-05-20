@@ -1,6 +1,7 @@
 import { apiClient, authorizedFetch } from './client';
 
 const CHAT_SESSIONS_CACHE_TTL_MS = 1000;
+const CHAT_MODEL = import.meta.env.VITE_OPENAI_CHAT_MODEL?.trim() || '';
 
 let chatSessionsPromise = null;
 let chatSessionsCache = null;
@@ -112,6 +113,17 @@ async function consumeEventStream(stream, onEvent) {
   }
 }
 
+function buildChatPayload(payload) {
+  if (!CHAT_MODEL || payload?.model_name) {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    model_name: CHAT_MODEL,
+  };
+}
+
 export const chatsApi = {
   async listSessions({ force = false } = {}) {
     const now = Date.now();
@@ -170,7 +182,7 @@ export const chatsApi = {
         Accept: 'text/event-stream',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(buildChatPayload(payload)),
       signal,
     });
 
