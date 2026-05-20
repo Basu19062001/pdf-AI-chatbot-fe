@@ -8,8 +8,6 @@ vi.mock('./client', () => ({
   authorizedFetch: (...args) => authorizedFetchMock(...args),
 }));
 
-import { chatsApi } from './chats';
-
 function buildStreamResponse(chunks) {
   const encoder = new TextEncoder();
 
@@ -34,9 +32,14 @@ function buildStreamResponse(chunks) {
 describe('chatsApi.streamMessage', () => {
   afterEach(() => {
     authorizedFetchMock.mockReset();
+    vi.resetModules();
+    vi.unstubAllEnvs();
   });
 
   it('parses SSE events and forwards payloads in order', async () => {
+    vi.stubEnv('VITE_OPENAI_CHAT_MODEL', 'gpt-4o');
+    const { chatsApi } = await import('./chats');
+
     authorizedFetchMock.mockResolvedValue(
       buildStreamResponse([
         'event: message_start\n',
@@ -57,6 +60,11 @@ describe('chatsApi.streamMessage', () => {
         onEvent: (event) => receivedEvents.push(event),
       },
     );
+
+    expect(JSON.parse(authorizedFetchMock.mock.calls[0][1].body)).toEqual({
+      content: 'Hi there',
+      model_name: 'gpt-4o',
+    });
 
     expect(receivedEvents).toEqual([
       {
