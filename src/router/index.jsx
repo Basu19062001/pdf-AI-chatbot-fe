@@ -9,6 +9,7 @@ import { ProtectedRoute } from '../routes/ProtectedRoute';
 import { PublicOnlyRoute } from '../routes/PublicOnlyRoute';
 import { DashboardPage } from '../pages/DashboardPage';
 import { DocumentsPage } from '../pages/DocumentsPage';
+import { GoogleAuthSuccessPage } from '../pages/GoogleAuthSuccessPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -20,6 +21,15 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/auth/google/success',
+        element: <GoogleAuthSuccessPage />,
+      },
+    ],
   },
   {
     element: <PublicOnlyRoute />,

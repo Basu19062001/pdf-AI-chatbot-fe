@@ -1,4 +1,4 @@
-import { apiClient, publicClient } from './client';
+import { apiClient, getApiBaseUrl, publicClient } from './client';
 
 let listSessionsPromise = null;
 
@@ -11,6 +11,10 @@ export const authApi = {
   async login(payload) {
     const response = await publicClient.post('/auth/login', payload);
     return response.data;
+  },
+
+  getGoogleStartUrl() {
+    return `${getApiBaseUrl()}/auth/google/start`;
   },
 
   async refresh(payload) {

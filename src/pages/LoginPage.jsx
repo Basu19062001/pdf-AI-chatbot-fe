@@ -4,19 +4,23 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { InlineMessage } from '../components/common/InlineMessage';
+import { GoogleLogo } from '../components/common/GoogleLogo';
 import { TextField } from '../components/forms/TextField';
 import { useAuth } from '../hooks/useAuth';
+import { getGoogleAuthErrorMessage } from '../utils/googleAuth';
 import { loginSchema } from '../utils/validation';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { login, getApiErrorMessage } = useAuth();
+  const { login, loginWithGoogle, getApiErrorMessage } = useAuth();
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const fromPath = location.state?.from || '/app';
   const showRegisteredMessage = searchParams.get('registered') === '1';
+  const googleError = searchParams.get('error');
 
   const {
     register,
@@ -44,6 +48,12 @@ export function LoginPage() {
     }
   }
 
+  function handleGoogleLogin() {
+    setSubmitError('');
+    setIsGoogleSubmitting(true);
+    loginWithGoogle(fromPath);
+  }
+
   return (
     <div className="auth-card">
       <div className="auth-card__topbar">
@@ -67,7 +77,25 @@ export function LoginPage() {
         </InlineMessage>
       ) : null}
 
+      {googleError ? (
+        <InlineMessage tone="error">{getGoogleAuthErrorMessage(googleError)}</InlineMessage>
+      ) : null}
+
       {submitError ? <InlineMessage tone="error">{submitError}</InlineMessage> : null}
+
+      <button
+        type="button"
+        className="google-auth-button"
+        onClick={handleGoogleLogin}
+        disabled={isSubmitting || isGoogleSubmitting}
+      >
+        <GoogleLogo className="google-auth-button__mark" />
+        <span>{isGoogleSubmitting ? 'Opening Google...' : 'Continue with Google'}</span>
+      </button>
+
+      <div className="auth-divider" role="separator" aria-label="or">
+        <span>or</span>
+      </div>
 
       <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
         <TextField
@@ -89,7 +117,7 @@ export function LoginPage() {
           autoComplete="current-password"
         />
 
-        <button type="submit" className="button" disabled={isSubmitting}>
+        <button type="submit" className="button" disabled={isSubmitting || isGoogleSubmitting}>
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>
       </form>

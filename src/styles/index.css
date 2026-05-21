@@ -788,6 +788,88 @@ select {
   gap: 0.8rem;
 }
 
+.google-auth-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.62rem;
+  width: 100%;
+  min-height: 42px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.google-auth-button:hover:not(:disabled),
+.google-auth-button:focus-visible {
+  border-color: rgba(53, 88, 230, 0.35);
+  box-shadow: 0 14px 28px rgba(17, 24, 39, 0.09);
+  transform: translateY(-1px);
+}
+
+.google-auth-button:focus-visible {
+  outline: 3px solid rgba(53, 88, 230, 0.16);
+  outline-offset: 2px;
+}
+
+.google-auth-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.google-auth-button__mark {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  margin: 0.78rem 0;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(17, 24, 39, 0.09);
+}
+
+.auth-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(53, 88, 230, 0.14);
+  border-radius: 14px;
+  background: rgba(53, 88, 230, 0.07);
+  color: var(--primary-deep);
+  font-weight: 800;
+}
+
+.auth-progress__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(53, 88, 230, 0.22);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
 .field {
   gap: 0.45rem;
 }
@@ -2383,6 +2465,12 @@ select {
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

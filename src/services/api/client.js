@@ -8,7 +8,7 @@ let refreshSessionHandler = null;
 let unauthorizedHandler = null;
 let refreshPromise = null;
 
-const authPathFragments = ['/auth/login', '/auth/signup', '/auth/refresh'];
+const authPathFragments = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/google'];
 
 export const apiClient = axios.create({
   baseURL,

@@ -11,6 +11,10 @@ import { authApi } from '../services/api/auth';
 import { configureApiClient } from '../services/api/client';
 import { getApiErrorMessage } from '../utils/http';
 import { getDeviceMetadata } from '../utils/device';
+import {
+  extractGoogleTokenPayload,
+  persistGoogleAuthReturnTo,
+} from '../utils/googleAuth';
 
 let refreshSessionPromise = null;
 
@@ -180,6 +184,20 @@ export function AuthProvider({ children }) {
     [applyTokenPayload],
   );
 
+  const loginWithGoogle = useCallback((returnTo = '/app') => {
+    persistGoogleAuthReturnTo(returnTo);
+    window.location.assign(authApi.getGoogleStartUrl());
+  }, []);
+
+  const completeGoogleLogin = useCallback(async () => {
+    const callbackPayload = extractGoogleTokenPayload();
+    if (!callbackPayload) {
+      throw new Error('Google sign-in completed, but no frontend session was returned.');
+    }
+
+    return applyTokenPayload(normalizeTokenPayload(callbackPayload));
+  }, [applyTokenPayload]);
+
   const logout = useCallback(async () => {
     try {
       if (authState.accessToken) {
@@ -201,6 +219,8 @@ export function AuthProvider({ children }) {
       isBootstrapping,
       signup,
       login,
+      loginWithGoogle,
+      completeGoogleLogin,
       logout,
       listSessions,
       refreshSession,
@@ -213,6 +233,8 @@ export function AuthProvider({ children }) {
       isBootstrapping,
       listSessions,
       login,
+      loginWithGoogle,
+      completeGoogleLogin,
       logout,
       refreshSession,
       signup,

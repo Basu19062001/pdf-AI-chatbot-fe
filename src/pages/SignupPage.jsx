@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { InlineMessage } from '../components/common/InlineMessage';
+import { GoogleLogo } from '../components/common/GoogleLogo';
 import { TextField } from '../components/forms/TextField';
 import { useAuth } from '../hooks/useAuth';
 import { signupSchema } from '../utils/validation';
@@ -27,9 +28,10 @@ function getPasswordChecks(password) {
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { signup, getApiErrorMessage } = useAuth();
+  const { signup, loginWithGoogle, getApiErrorMessage } = useAuth();
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const {
     register,
@@ -62,6 +64,12 @@ export function SignupPage() {
     }
   }
 
+  function handleGoogleLogin() {
+    setSubmitError('');
+    setIsGoogleSubmitting(true);
+    loginWithGoogle('/app');
+  }
+
   return (
     <div className="auth-card">
       <div className="auth-card__topbar">
@@ -82,6 +90,20 @@ export function SignupPage() {
       </div>
 
       {submitError ? <InlineMessage tone="error">{submitError}</InlineMessage> : null}
+
+      <button
+        type="button"
+        className="google-auth-button"
+        onClick={handleGoogleLogin}
+        disabled={isSubmitting || isGoogleSubmitting}
+      >
+        <GoogleLogo className="google-auth-button__mark" />
+        <span>{isGoogleSubmitting ? 'Opening Google...' : 'Continue with Google'}</span>
+      </button>
+
+      <div className="auth-divider" role="separator" aria-label="or">
+        <span>or</span>
+      </div>
 
       <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
         <TextField
@@ -111,7 +133,7 @@ export function SignupPage() {
           autoComplete="new-password"
         />
 
-        <button type="submit" className="button" disabled={isSubmitting}>
+        <button type="submit" className="button" disabled={isSubmitting || isGoogleSubmitting}>
           {isSubmitting ? 'Creating account...' : 'Create account'}
         </button>
       </form>
