@@ -1,0 +1,19 @@
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+
+import { FullScreenLoader } from '../components/common/FullScreenLoader';
+import { useAuth } from '../hooks/useAuth';
+
+export function ProtectedRoute() {
+  const { isAuthenticated, isBootstrapping } = useAuth();
+  const location = useLocation();
+
+  if (isBootstrapping) {
+    return <FullScreenLoader label="Restoring your secure session..." variant="app" />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return <Outlet />;
+}
